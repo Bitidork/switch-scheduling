@@ -14,7 +14,7 @@ import network.Message;
  * <p>
  * Hides away concurrency details and other ordering issues. Users of this class must provide:
  * <ul>
- * <li>Update on a global clock: {@link #update(int)}
+ * <li>Update on a global clock: {@link #onUpdate(int)}
  * <li>Receive messages destined for this node: {@link #onReceiveMessage(int, Message)}
  * <li>Route messages through this node: {@link #scheduleMessage(int, Node, Message)}, {@link #sendOutboundMessages(int)}
  * </ul>
@@ -106,7 +106,7 @@ public abstract class Node<T extends Message> {
 	 * @see #update(int)
 	 * @see #processMessage(int, Node, Message)
 	 */
-	public abstract void onReceiveMessage( final int time, final T message );
+	protected abstract void onReceiveMessage( final int time, final T message );
 	
 	/**
 	 * Schedules <i>message</i> that hopped from <i>source</i> to this node to be an outbound message.
@@ -118,7 +118,7 @@ public abstract class Node<T extends Message> {
 	 * @see #update(int)
 	 * @see #processMessage(int, Node, Message)
 	 */
-	public abstract void scheduleMessage( final int time, final Node<T> source, final T message );
+	protected abstract void scheduleMessage( final int time, final Node<T> source, final T message );
 	
 	/**
 	 * Called whenever {@link #update(int)} is called.
@@ -126,7 +126,7 @@ public abstract class Node<T extends Message> {
 	 * @param time The time the node is updated.
 	 * @see #update(int)
 	 */
-	public abstract void onUpdate( final int time );
+	protected abstract void onUpdate( final int time );
 	
 	/**
 	 * Sends a subset of messages scheduled by {@link #scheduleMessage(int, Node, Message)} out from this node.
@@ -137,7 +137,7 @@ public abstract class Node<T extends Message> {
 	 * @see #transmitToNode(int, Node, Message)
 	 * @see #update(int)
 	 */
-	public abstract void sendOutboundMessages( final int time );
+	protected abstract void sendOutboundMessages( final int time );
 	
 	/**
 	 * Constructs a <i>Node</i> with a unique identifier.
@@ -268,9 +268,8 @@ public abstract class Node<T extends Message> {
 	 * Gets a set of idle output ports from this node.
 	 * @return Returns a set of idle output ports from this node.
 	 */
-	@SuppressWarnings("unchecked")
 	public Set<Node<T>> getIdleOutputPorts( ) {
-		return (Set<Node<T>>)this.idleOutputPorts.clone( );
+		return new HashSet<Node<T>>(this.idleOutputPorts);
 	}
 	
 	/**
