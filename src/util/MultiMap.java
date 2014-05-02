@@ -5,8 +5,6 @@ import java.util.Set;
 
 /**
  * Abstract class that specifies a mapping from a subset of K to the powerset of a subset V.
- * <p>
- * The empty set is characterized by a null set, for consistency.
  * @author Bitidork
  *
  * @param <K> The key type.
@@ -88,8 +86,6 @@ public abstract class MultiMap<K, V> {
 	
 	/**
 	 * Removes <b>v</b> from the value of <b>k</b> under this multimap.
-	 * <p>
-	 * Calls {@link #removeAll(Object)} if removal of the object leads to an empty set, for null-entry consistency.
 	 * @param k The key.
 	 * @param v The value.
 	 * @return Returns v if it was in the value of <b>k</b>, else returns null.
