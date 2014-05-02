@@ -1,5 +1,7 @@
 package network;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.PriorityQueue;
@@ -110,7 +112,9 @@ public abstract class Node<T extends Message> {
 	
 	/**
 	 * Schedules <i>message</i> that hopped from <i>source</i> to this node to be an outbound message.
+	 * <p>
 	 * It should be possible for this message to be sent out from this node on a call to {@link #sendOutboundMessages(int)}.
+	 * If this node just generated this message, <i>source</i> should be this node.
 	 * @param time The time to schedule the message at.
 	 * @param source The node that the message most recently came from.
 	 * @param message The message to schedule.
@@ -269,7 +273,15 @@ public abstract class Node<T extends Message> {
 	 * @return Returns a set of idle output ports from this node.
 	 */
 	public Set<Node<T>> getIdleOutputPorts( ) {
-		return new HashSet<Node<T>>(this.idleOutputPorts);
+		return Collections.unmodifiableSet( this.idleOutputPorts );
+	}
+	
+	/**
+	 * Gets the set of output links from this node.
+	 * @return Returns an unmodifiable set of output links from this node.
+	 */
+	public Collection<OutputLink<T>> getOutputLinks( ) {
+		return Collections.unmodifiableCollection( this.outputLinks.values() );
 	}
 	
 	/**
