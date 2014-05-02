@@ -1,130 +1,132 @@
 package network;
 
-import java.util.ArrayList;
+import util.Tuple;
+import util.WeightedMultiHashMap;
+
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Implements a scheduler for FIFONodes.
+ * Implements a FIFO scheduler.
  * @author Bitidork
  *
  * @param <T> A type of message.
  */
-public final class FIFOScheduler<T extends Message> extends SwitchScheduler<FIFONode<T>, T> {
+public final class FIFOScheduler<T extends Message> extends Scheduler<T> {
 	@Override
-	public void scheduleSwitch( final int time, final FIFONode<T> node ) {
-		ConcurrentHashMap<Pair, Node<T>> decisionMap = this.getDecisionMapping( node );
+	protected void initializeTag( final DeferredSchedulingNode<T> node ) {
+		node.tag = new Tag( );
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void addMessageToSchedule( final int time, final Node<T> source,
+			final DeferredSchedulingNode<T> node, T message) {
+		((Tag)node.tag).addMessage(source, node, message);		
+	}
+
+	@Override
+	public void scheduleNode(int time, DeferredSchedulingNode<T> node) {
+		@SuppressWarnings("unchecked")
+		Tag tag = (Tag)node.tag;
+		WeightedMultiHashMap<Node<T>, Node<T>> requestingInputs = new WeightedMultiHashMap<Node<T>, Node<T>>( );
 		
-		// a mapping for which the domain are used output nodes and the values are a set of queues that can be scheduled for that output
-		HashMap<Node<T>, Set<Queue<T>>> assignedQueues = new HashMap<Node<T>, Set<Queue<T>>>( );
+		Set<Node<T>> inputNodes = tag.getNodesWithAvailableInput( );
+		Set<Node<T>> outputNodes = node.getIdleOutputPorts( );
 		
-		// collect queue collections
-		for ( Node<T> source : node.getAvailableInputNodes() ) {
-			Queue<T> queue = node.getAvailableInputQueue( source );
-			T head = queue.poll( );
-			
-			@SuppressWarnings("unchecked")
-			Node<T> nextHop = decisionMap.get( new Pair((Node<T>)head.getSource(), (Node<T>)head.getDestination()) );
-			
-			if ( nextHop == null )
-				throw new IllegalStateException("Got a (source, switch, destination) triple that could not be routed");
-			
-			Set<Queue<T>> range = assignedQueues.get( nextHop );
-			if ( range == null )
-				assignedQueues.put( nextHop, range = new HashSet<Queue<T>>( ) );
+		// fill in the multi hash map
+		for ( Node<T> src : inputNodes ) {
+			T head = tag.peekMessageFromQueue( src );
+			Node<T> nextHop = this.getNextHop( node, head );
+			if ( outputNodes.contains( nextHop ) )
+				requestingInputs.put( nextHop, src );			
 		}
 		
-		Random rng = new Random( );
+		// grant random requests
+		Set<Tuple<Node<T>, Node<T>>> grantedRequests = new HashSet<Tuple<Node<T>, Node<T>>>( );
+		for ( Node<T> output : requestingInputs.keySet() ) {
+			Node<T> grantedInput = requestingInputs.pickRandom( output );
+			grantedRequests.add( new Tuple<Node<T>, Node<T>>( grantedInput, output ));
+		}
+		
 		// transmit
-		for ( Node<T> output : assignedQueues.keySet() ) {
-			List<Queue<T>> waitingList = new ArrayList<Queue<T>>(assignedQueues.get( output ));
-			Queue<T> queue = waitingList.get( rng.nextInt( waitingList.size() ) );
-			
-			T head = queue.remove( );
-			
-			// remove from node available queues
-			if ( queue.isEmpty() )
-				node.removeInputQueue( queue );
-			
-			@SuppressWarnings("unchecked")
-			Node<T> nextHop = decisionMap.get( new Pair((Node<T>)head.getSource(), (Node<T>)head.getDestination()) );
-			
-			node.transmitToNode( time, nextHop, head );
+		for ( Tuple<Node<T>, Node<T>> edge : grantedRequests ) {
+			T head = tag.popMessageFromQueue( edge.first );
+			node.transmitToNode( time, edge.second, head );
 		}
 	}
 	
 	/**
-	 * Causes messages at <i>node</i> that originated from <i>source</i> and are destined for <i>destination</i> to transmit to <i>nextHop</i>.
-	 * @param source The message source.
-	 * @param node The switch the message is at.
-	 * @param destination The message destination.
-	 * @param nextHop The next node to transmit the message to.
-	 */
-	public void putDecision( final Node<T> source, final FIFONode<T> node, final Node<T> destination, final Node<T> nextHop ) {
-		ConcurrentHashMap<Pair, Node<T>> m = mapping.get( node );
-		if ( m == null )
-			mapping.put( node, m = new ConcurrentHashMap<Pair, Node<T>>( ));
-		
-		m.put( new Pair(source, destination), nextHop );
-	}
-	
-	/**
-	 * Gets the decision mapping used for the supplied node.
-	 * @param node The switch to get the mapping for.
-	 * @return Returns the decision mapping used for the supplied node.
-	 * @throws IllegalArgumentException if the supplied switch was not found in the schedule
-	 */
-	private ConcurrentHashMap<Pair, Node<T>> getDecisionMapping( final FIFONode<T> node ) {
-		ConcurrentHashMap<Pair, Node<T>> m = mapping.get( node );
-		if ( m == null )
-			throw new IllegalArgumentException("Supplied node was not under the domain of this scheduler");
-		
-		return m;
-	}
-	
-	/**
-	 * Constructs a FIFOScheduler with an empty source-switch-destination to next hop mapping.
-	 */
-	public FIFOScheduler( ) {
-		this.mapping = new ConcurrentHashMap<FIFONode<T>, ConcurrentHashMap<Pair, Node<T>>>( );
-	}
-	
-	/**
-	 * Effectively a mapping of (source, switch, destination) triplets to the node for the next hop.
-	 */
-	private ConcurrentHashMap<FIFONode<T>, ConcurrentHashMap<Pair, Node<T>>> mapping;
-	
-	
-	/**
-	 * A (source, destination) tuple.
+	 * Tag for the FIFOScheduler. Maintains a Queue of messages for each input, and removes empty queues.
 	 * @author Bitidork
 	 *
 	 */
-	private class Pair {
-		public Node<T> source, destination;
-		
-		public Pair( final Node<T> source, final Node<T> destination ) {
-			this.source = source;
-			this.destination = destination;
+	protected class Tag {	
+		/**
+		 * Registers the message with this Tag.
+		 * @param source The source of the message (that just transmitted it).
+		 * @param node The node the message is currently at.
+		 * @param message The message.
+		 */
+		protected void addMessage( final Node<T> source, final DeferredSchedulingNode<T> node, final T message ) {
+			Queue<T> queue = this.inputQueues.get( source );
+			if ( queue == null )
+				this.inputQueues.put( source, queue = new LinkedList<T>( ));
+			
+			queue.add( message );
 		}
 		
-		@Override
-		public int hashCode( ) {
-			return this.source.hashCode() << 16 | this.destination.hashCode();
+		/**
+		 * Gets the set of sources of messages still at this node.
+		 * @return Returns the set of sources of messages still at this node.
+		 */
+		protected Set<Node<T>> getNodesWithAvailableInput( ) {
+			return inputQueues.keySet();
 		}
 		
-		@Override
-		public boolean equals( Object ocomp ) {
-			if ( ocomp == null || !(ocomp instanceof FIFOScheduler.Pair ) )
-				return false;
-			@SuppressWarnings("unchecked")
-			Pair comp = (Pair)ocomp;
-			return this.source.equals(comp.source) && this.destination.equals(comp.destination);
+		/**
+		 * Gets and removes (from the queue itself) the next message that came from the supplied node.
+		 * This method will exception if no message could be retrieved.
+		 * @param inputQueue The input queue.
+		 * @return Returns the next message that came from the supplied node.
+		 */
+		protected T popMessageFromQueue( final Node<T> inputQueue ) {
+			Queue<T> queue = inputQueues.get( inputQueue );
+			T msg = queue.remove( );
+			if ( queue.isEmpty() )
+				inputQueues.remove( inputQueue );
+			
+			return msg;
+		}
+		
+		/**
+		 * Gets the next message that came from the supplied node.
+		 * This method will exception if no message could be retrieved.
+		 * @param inputQueue The input queue.
+		 * @return Returns the next message that came from the supplied node.
+		 */
+		protected T peekMessageFromQueue( final Node<T> inputQueue ) {
+			Queue<T> queue = inputQueues.get( inputQueue );
+			T msg = queue.peek( );
+			if ( msg == null )
+				throw new IllegalStateException("queue was empty");
+			return msg;
+		}
+		
+		/**
+		 * A mapping between sources and input queues themselves.
+		 * Any empty queue is removed.
+		 */
+		private HashMap<Node<T>, Queue<T>> inputQueues;
+	
+		/**
+		 * Constructs a new Tag object.
+		 */
+		public Tag( ) {
+			this.inputQueues = new HashMap<Node<T>, Queue<T>>( );
 		}
 	}
 }
