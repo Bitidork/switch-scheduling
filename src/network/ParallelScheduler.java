@@ -1,134 +1,89 @@
 package network;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashSet;
+import util.Tuple;
+import java.util.HashMap;
 
-public final class ParallelScheduler<T extends Message> extends SwitchScheduler<ParallelNode<T>, T> {
+public final class ParallelScheduler<T extends Message> extends VOQScheduler<T> {
 
+	
+	//for each of four iterations
+	//build set of nodes OR voqs that can be scheduled for each unscheduled output
+	//each output selects an input/voq at random
+	//each input selects an output (at random)to which it has been granted, puts it on the queue of messages to be scheduled
+	//remove each scheduled input and output from the pool
 	@Override
-	public void scheduleSwitch( final int time, final ParallelNode<T> node ) {
-		ConcurrentHashMap<Pair, Node<T>> decisionMap = this.getDecisionMapping(node);
-		
-		//for each of four iterations
-			//build set of nodes OR voqs that can be scheduled for each unscheduled output
-			//each output selects an input/voq at random
-			//each input selects an output (at random)to which it has been granted, puts it on the queue of messages to be scheduled
-			//remove each scheduled input and output from the pool
-		
-		/*ConcurrentHashMap<Pair, Node<T>> decisionMap = this.getDecisionMapping( node );
-		
-		// a mapping for which the domain are used output nodes and the values are a set of queues that can be scheduled for that output
-		HashMap<Node<T>, Set<Queue<T>>> assignedQueues = new HashMap<Node<T>, Set<Queue<T>>>( );
-		
-		// collect queue collections
-		for ( Node<T> source : node.getAvailableInputNodes() ) {
-			Queue<T> queue = node.getAvailableInputQueue( source );
-			T head = queue.poll( );
+	public Set<Tuple<Node<T>, Node<T>>> createProgram(int time, DeferredSchedulingNode<T> node, network.VOQScheduler<T>.Tag tag) {
+
+		//initialize pool of tuples to draw from, output set
+
+		Set<Tuple<Node<T>, Node<T>>> output = new HashSet<Tuple<Node<T>, Node<T>>>();
+		HashMap<Node<T>, Set<Tuple<Node<T>, Node<T>>>> grants;
+		HashSet<Tuple<Node<T>,Node<T>>> pool = new HashSet<Tuple<Node<T>, Node<T>>>(tag.getAvailableVOQs());
+		//4 iterations total
+		for(int index = 0; index < 4; index++){
+			//inputs request access from each available output; kinda taken care of already
+			//outputs choose randomly amongst each input to grant access; iterate through, build set of arrays
+			grants = new HashMap<Node<T>, Set<Tuple<Node<T>, Node<T>>>>();
+			HashMap<Node<T>, Set<Tuple<Node<T>,Node<T>>>> sortedRequests = new HashMap<Node<T>, Set<Tuple<Node<T>,Node<T>>>>();
+			for(Tuple<Node<T>, Node<T>> link: pool){
+				Node<T> src = link.first;
+				Node<T> dest = link.second;
+				Set<Tuple<Node<T>,Node<T>>> s = sortedRequests.get(dest);
+				if(s == null){
+					sortedRequests.put(dest,  s = new HashSet<Tuple<Node<T>,Node<T>>>());
+				}
+				s.add(link);
+			}
+			//now that we have all the available tuples sorted by their output nodes, for each set choose one to grant request
+			for(Node<T> outputNode: sortedRequests.keySet()){
+				int j = new Random().nextInt(sortedRequests.get(outputNode).size());
+				int k = 0;
+				Tuple<Node<T>, Node<T>> grant = null;
+				for(Tuple<Node<T>,Node<T>> request: sortedRequests.get(outputNode)){
+					if(k == j){
+						grant = request;
+						break;
+					}
+					j++;
+				}
+				//automatically sort grants by input
+				Set<Tuple<Node<T>,Node<T>>> sortedGrants = grants.get(grant.first);
+				if(sortedGrants == null)
+					sortedGrants = new HashSet<Tuple<Node<T>,Node<T>>>();
+				sortedGrants.add(grant);
+			}
+			//for each key(input node) in grants, accept one grant at random and add it to the output set
+			for(Node<T> g: grants.keySet()){
+				int j = new Random().nextInt(sortedRequests.get(g).size());
+				int k = 0;
+				Tuple<Node<T>, Node<T>> accept = null;
+				for(Tuple<Node<T>,Node<T>> currentGrant: grants.get(g)){
+					if(k == j){
+						//accept the grant
+						accept = currentGrant;
+						output.add(accept);
+						//remove all instances of either the input or output node from pool
+						HashSet<Tuple<Node<T>,Node<T>>> newPool = (HashSet<Tuple<Node<T>, Node<T>>>) pool.clone();
+						for(Tuple<Node<T>,Node<T>> link: pool){
+							if(link.first == accept.first || link.second == accept.second){
+								newPool.remove(link);
+							}
+						}
+						pool = newPool;
+						break;
+					}
+					j++;
+				}
+			}
 			
-			@SuppressWarnings("unchecked")
-			Node<T> nextHop = decisionMap.get( new Pair((Node<T>)head.getSource(), (Node<T>)head.getDestination()) );
-			
-			if ( nextHop == null )
-				throw new IllegalStateException("Got a (source, switch, destination) triple that could not be routed");
-			
-			Set<Queue<T>> range = assignedQueues.get( nextHop );
-			if ( range == null )
-				assignedQueues.put( nextHop, range = new HashSet<Queue<T>>( ) );
 		}
 		
-		Random rng = new Random( );
-		// transmit
-		for ( Node<T> output : assignedQueues.keySet() ) {
-			List<Queue<T>> waitingList = new ArrayList<Queue<T>>(assignedQueues.get( output ));
-			Queue<T> queue = waitingList.get( rng.nextInt( waitingList.size() ) );
-			
-			T head = queue.remove( );
-			
-			// remove from node available queues
-			if ( queue.isEmpty() )
-				node.removeInputQueue( queue );
-			
-			@SuppressWarnings("unchecked")
-			Node<T> nextHop = decisionMap.get( new Pair((Node<T>)head.getSource(), (Node<T>)head.getDestination()) );
-			
-			node.transmitToNode( time, nextHop, head );
-		}
-		*/
+		return output;
 	}
 	
-	/**
-	 * Causes messages at <i>node</i> that originated from <i>source</i> and are destined for <i>destination</i> to transmit to <i>nextHop</i>.
-	 * @param source The message source.
-	 * @param node The switch the message is at.
-	 * @param destination The message destination.
-	 * @param nextHop The next node to transmit the message to.
-	 */
-	public void putDecision( final Node<T> source, final ParallelNode<T> node, final Node<T> destination, final Node<T> nextHop ) {
-		ConcurrentHashMap<Pair, Node<T>> m = mapping.get( node );
-		if ( m == null )
-			mapping.put( node, m = new ConcurrentHashMap<Pair, Node<T>>( ));
-		
-		m.put( new Pair(source, destination), nextHop );
-	}
 	
-	/**
-	 * Gets the decision mapping used for the supplied node.
-	 * @param node The switch to get the mapping for.
-	 * @return Returns the decision mapping used for the supplied node.
-	 * @throws IllegalArgumentException if the supplied switch was not found in the schedule
-	 */
-	private ConcurrentHashMap<Pair, Node<T>> getDecisionMapping( final ParallelNode<T> node ) {
-		ConcurrentHashMap<Pair, Node<T>> m = mapping.get( node );
-		if ( m == null )
-			throw new IllegalArgumentException("Supplied node was not under the domain of this scheduler");
-		
-		return m;
-	}
-	
-	/**
-	 * Constructs a FIFOScheduler with an empty source-switch-destination to next hop mapping.
-	 */
-	public ParallelScheduler( ) {
-		this.mapping = new ConcurrentHashMap<ParallelNode<T>, ConcurrentHashMap<Pair, Node<T>>>( );
-	}
-	
-	/**
-	 * Effectively a mapping of (source, switch, destination) triplets to the node for the next hop.
-	 */
-	private ConcurrentHashMap<ParallelNode<T>, ConcurrentHashMap<Pair, Node<T>>> mapping;
-	
-	
-	/**
-	 * A (source, destination) tuple.
-	 * @author Bitidork
-	 *
-	 */
-	private class Pair {
-		public Node<T> source, destination;
-		
-		public Pair( final Node<T> source, final Node<T> destination ) {
-			this.source = source;
-			this.destination = destination;
-		}
-		
-		@Override
-		public int hashCode( ) {
-			return this.source.hashCode() << 16 | this.destination.hashCode();
-		}
-		
-		@Override
-		public boolean equals( Object ocomp ) {
-			if ( ocomp == null || !(ocomp instanceof ParallelScheduler.Pair ) )
-				return false;
-			@SuppressWarnings("unchecked")
-			Pair comp = (Pair)ocomp;
-			return this.source.equals(comp.source) && this.destination.equals(comp.destination);
-		}
-	}
+
 }
