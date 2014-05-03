@@ -17,11 +17,8 @@ public class MultiHashMap<K, V> extends MultiMap<K, V> {
 	@Override
 	public void put( final K k, final V v ) {
 		Set<V> S = this.get( k );
-		if ( S == null ) {
-			// this.map.put( k, S = new HashSet<V>( ) ); // UNUSED; CAUSED ISSUES WITH WEIGHTEDMULTIHASHMAP
-			this.map.put( k, new HashSet<V>( ) );
-			S = this.get( k );
-		}
+		if ( S == null )
+			this.map.put( k, S = new HashSet<V>( ) );
 		
 		S.add( v );
 	}
@@ -32,11 +29,8 @@ public class MultiHashMap<K, V> extends MultiMap<K, V> {
 			return;
 		
 		Set<V> S = this.get( k );
-		if ( S == null ) {
-			// this.map.put( k, S = new HashSet<V>( v ) ); // UNUSED; CAUSED ISSUES WITH WEIGHTEDMULTIHASHMAP
-			this.map.put( k, new HashSet<V>( c ) );
-			S = this.get( k );
-		}
+		if ( S == null )
+			this.map.put( k, S = new HashSet<V>( c ) );
 		
 		S.addAll( c );
 	}
@@ -66,6 +60,9 @@ public class MultiHashMap<K, V> extends MultiMap<K, V> {
 	 */
 	private HashMap<K, Set<V>> map;
 	
+	/**
+	 * Constructs an empty, hash-based multimap.
+	 */
 	public MultiHashMap( ) {
 		this.map = new HashMap<K, Set<V>>( );
 	}

@@ -20,6 +20,12 @@ import java.util.concurrent.ThreadLocalRandom;
  * @param <V>> The value type.
  */
 public final class WeightedMultiHashMap<K, V> extends MultiMap<K, V> {
+	/**
+	 * Puts <b>v</b> into the image of <b>k</b> under this mapping, with weight <b>w</b>.
+	 * @param k The key.
+	 * @param v The value.
+	 * @param w The weight of the value under the key.
+	 */
 	public void put(K k, V v, float w) {
 		WeightedHashSet<V> set = (WeightedHashSet<V>)this.get(k);
 		if ( set == null ) {
@@ -120,7 +126,7 @@ public final class WeightedMultiHashMap<K, V> extends MultiMap<K, V> {
 	private HashMap<K, Set<V>> map;
 	
 	/**
-	 * Constructs an empty weighted, hash-based multimap.
+	 * Constructs an empty, weighted, hash-based multimap.
 	 */
 	public WeightedMultiHashMap( ) {
 		this.map = new HashMap<K, Set<V>>( );

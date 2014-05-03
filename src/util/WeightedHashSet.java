@@ -110,7 +110,7 @@ public class WeightedHashSet<T> implements Set<T> {
 			weights.remove( o );
 		}
 		
-		totalWeight -= delta;
+		totalWeight += delta;
 		return set.removeAll(removedObjects);
 	}
 
