@@ -19,7 +19,8 @@ public class Message {
 	 * @throws IllegalArgumentException if source or destination are null
 	 * @throws IllegalArgumentException if timestamp is negative
 	 */
-	public Message( final Node<Message> source, final Node<Message> destination, final int timestamp ) {
+	@SuppressWarnings("unchecked")
+	public Message( final Node<? extends Message> source, final Node<? extends Message> destination, final int timestamp ) {
 		if ( source == null )
 			throw new IllegalArgumentException("source is null");
 		
@@ -29,8 +30,8 @@ public class Message {
 		if ( timestamp < 0 )
 			throw new IllegalArgumentException("timestamp is negative");
 		
-		this.source = source;
-		this.destination = destination;
+		this.source = (Node<Message>)source;
+		this.destination = (Node<Message>)destination;
 		this.timestamp = timestamp;
 	}
 	

@@ -224,16 +224,15 @@ public abstract class Node<T extends Message> {
 	 * @param time The time at which the link is registered.
 	 * @param link The link to register with this node.
 	 * @throws IllegalArgumentException if this node is not the sink of the link
-	 * @throws IllegalArgumentException if the link is busy (cannot transmit)
+	 * @returns The node object for cascading calls.
 	 */
-	public void addLink( final int time, final InputLink<T> link ) {
+	public Node<T> addLink( final int time, final InputLink<T> link ) {
 		if ( this != link.getSink( ) )
 			throw new IllegalArgumentException("The node was not the sink of the supplied input link");
 		
-		if ( !link.canTransmit( time ) )
-			throw new IllegalArgumentException("The link was busy when registering");
-		
 		this.inputLinks.put( link.getSource( ), link );
+		
+		return this;
 	}
 	
 	/**
@@ -243,8 +242,9 @@ public abstract class Node<T extends Message> {
 	 * @param link The link to register with this node.
 	 * @throws IllegalArgumentException if this node is not the source of the link
 	 * @throws IllegalArgumentException if the link is busy (cannot transmit)
+	 * @returns The node object for cascading calls.
 	 */
-	public void addLink( final int time, final OutputLink<T> link ) {
+	public Node<T> addLink( final int time, final OutputLink<T> link ) {
 		if ( this != link.getSource( ) )
 			throw new IllegalArgumentException("The node was not the source of the supplied input link");
 		
@@ -253,6 +253,8 @@ public abstract class Node<T extends Message> {
 		
 		this.outputLinks.put( link.getSink( ), link );
 		this.idleOutputPorts.add( link.getSink( ) );
+		
+		return this;
 	}
 	
 	/**
@@ -296,12 +298,14 @@ public abstract class Node<T extends Message> {
 		Link<T> link = this.outputLinks.get( sink );
 		
 		if ( link == null ) {
-			throw new IllegalArgumentException("Suppled sink was not on an output port");
+			throw new IllegalArgumentException("Supplied sink was not on an output port");
 		} else if ( link.canTransmit(time) && this.idleOutputPorts.remove( sink ) ) {
 			// calculate arrival time
 			int arrivalTime = link.getTransmissionTime( message ) + time;
 			// start transmitting
 			link.transmit(time, message);
+			
+			outputArrivals.add( new TransmissionEntry( arrivalTime, this, sink, message ) ); 
 			
 			// add arrival entry to the sink
 			synchronized ( sink.inputArrivals ) {

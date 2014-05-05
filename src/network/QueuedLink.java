@@ -8,13 +8,15 @@ import network.Message;
 
 /**
  * A link that implements transmission and reception according to the ordering constraints outlined in {@link network.Link#transmit(int, Message)} and {@link network.Link#receive(int)}.
+ * 
+ * Also implements {@link #getTransmissionTime(Message)} to return 1.
  * @author Bitidork
  *
  * @param <T> The type of message this link transmits.
  */
-public abstract class QueuedLink<T extends Message> extends Link<T> {
+public class QueuedLink<T extends Message> extends Link<T> {
 	/**
-	 * Creates a <i>QueuedLink</i> between the given <i>source</i> and <i>sink</i>
+	 * Creates a <i>QueuedLink</i> between the given <i>source</i> and <i>sink</i>.
 	 * @param source The {@link network.Node} that transmits data over this link.
 	 * @param sink The {@link network.Node} that receives data over this link.
 	 * @throws IllegalArgumentException if source or sink are null
@@ -63,6 +65,11 @@ public abstract class QueuedLink<T extends Message> extends Link<T> {
 		synchronized ( this ) {
 			return this.payload == null || this.receivedPayloadTime <= time;
 		}
+	}
+	
+	@Override
+	public int getTransmissionTime( final T message ) {
+		return 1;
 	}
 	
 	/**
