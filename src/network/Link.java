@@ -35,8 +35,9 @@ public abstract class Link<T extends Message> {
 	 * Constructs a Link with the given source and sink.
 	 * @param source The {@link network.Node} that transmits data over this link.
 	 * @param sink The {@link network.Node} that receives data over this link.
-	 * @param transmissionRate The number of time steps that it takes to transmit something over this link.
-	 * @throws IllegalArgumentException if the source or sink node are null, or if transmission rate is not positive
+	 * @param transmissionRate The number of time steps that it takes to transmit something over this link, which is positive and should divide the frame size.
+	 * @throws IllegalArgumentException if the source or sink node are null
+	 * @throws IllegalArgumentException if the transmission rate is not positive or does not divide the frame size
 	 */
 	public Link( final Node<T> source, final Node<T> sink, final int transmissionRate ) {
 		if ( source == null ) 
@@ -48,9 +49,13 @@ public abstract class Link<T extends Message> {
 		if ( transmissionRate <= 0 )
 			throw new IllegalArgumentException("Transmission rate was not positive");
 		
+		if ( Constants.FRAME_SIZE % transmissionRate != 0 )
+			throw new IllegalArgumentException("Transmission rate did not divide the frame size");
+		
 		this.source = source;
 		this.sink = sink;
 		this.transmissionRate = transmissionRate;
+		this.capacity = transmissionRate / Constants.FRAME_SIZE;
 		
 		// delay creation of input and output links, for the InputLink and OutputLink classes.
 		this.inputLink = null;
@@ -95,15 +100,23 @@ public abstract class Link<T extends Message> {
 	 * Gets the amount of time needed to transmit a message over this link.
 	 * @return Returns the amount of time needed to transmit one message over this link.
 	 */
-	public int getTransmissionRate( ) {
+	public final int getTransmissionRate( ) {
 		return this.transmissionRate;
+	}
+	
+	/**
+	 * Gets the number of messages able to be transmitted per frame.
+	 * @return Returns the number of messages able to be transmitted per frame.
+	 */
+	public final int getCapacity( ) {
+		return this.capacity;
 	}
 	
 	/**
 	 * Gets the <i>Node</i> that transmits data over this link.
 	 * @return The <i>Node</i> that transmits data over this link.
 	 */
-	public Node<T> getSource( ) {
+	public final Node<T> getSource( ) {
 		return this.source;
 	}
 	
@@ -111,7 +124,7 @@ public abstract class Link<T extends Message> {
 	 * Gets the <i>Node</i> that receives data over this link.
 	 * @return The <i>Node</i> that receives data over this link.
 	 */
-	public Node<T> getSink( ) {
+	public final Node<T> getSink( ) {
 		return this.sink;
 	}
 	
@@ -163,4 +176,9 @@ public abstract class Link<T extends Message> {
 	 * The number of time units needed to transmit one message.
 	 */
 	private int transmissionRate;
+	
+	/**
+	 * The number of messages able to be transmitted per frame.
+	 */
+	private int capacity;
 }

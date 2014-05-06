@@ -1,10 +1,13 @@
 package network;
 
 import util.Tuple;
+import util.WeightedMultiHashMap;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Defines the abstract functionality of a scheduler, and provides support for a decision structure.
@@ -101,6 +104,15 @@ public abstract class Scheduler<T extends Message> {
 	}
 	
 	/**
+	 * Gets the supplied node's decision structure.
+	 * @param node The node.
+	 * @return Returns the node's supplied decision structure.
+	 */
+	public DecisionStructure getDecisionStructure( final DeferredSchedulingNode<T> node ) {
+		return node.decisionStructure;
+	}
+	
+	/**
 	 * Contains the structure necessary to determine where to send messages.
 	 * @author Bitidork
 	 *
@@ -158,15 +170,55 @@ public abstract class Scheduler<T extends Message> {
 		}
 		
 		/**
+		 * Gets the amount of capacity reserved across the supplied VOQ.
+		 * @param voq The virtual output queue.
+		 * @return Returns the amount of capacity reserved across the supplied VOQ.
+		 */
+		public int getReservedCapacity( final Tuple<Node<T>, Node<T>> voq ) {
+			return this.reservedCapacities.getWeight( voq.first, voq.second ).intValue();
+		}
+		
+		/**
+		 * Picks a random input, weighted based on the reserved capacity through the output.
+		 * @param output The output.
+		 * @param rng The random number generator to use.
+		 * @return Returns a random input, weighted based on the reserved capacity through the output, or null if no node could be picked.
+		 */
+		public Node<T> pickRandomInput( final Node<T> output, final Random rng ) {
+			try {
+				return this.reservedCapacities.pickRandom( output, rng );
+			} catch ( IllegalStateException e ) {
+				return null;
+			}
+		}
+		
+		/**
+		 * Picks a random input, weighted based on the reserved capacity through the output, using the thread's local random number generator.
+		 * @param output The output.
+		 * @return Returns a random input, weighted based on the reserved capacity through the output, or null if no node could be picked.
+		 * @see ThreadLocalRandom
+		 */
+		public Node<T> pickRandomInput( final Node<T> output ) {
+			return this.pickRandomInput( output, ThreadLocalRandom.current( ) );
+		}
+		
+		/**
 		 * The mapping of (source,destination) to next hop specific to this node.
 		 */
 		private HashMap<Tuple<Node<T>, Node<T>>, Node<T>> decisionMap;
+		
+		/**
+		 * A mapping from output terminals to the set of input terminals that use that output.
+		 * Each input is weighted by the capacity reserved across the terminals.
+		 */
+		private WeightedMultiHashMap<Node<T>, Node<T>> reservedCapacities;
 		
 		/**
 		 * Initializes an empty decision structure.
 		 */
 		public DecisionStructure( ) {
 			this.decisionMap = new HashMap<Tuple<Node<T>, Node<T>>, Node<T>>( );
+			this.reservedCapacities = new WeightedMultiHashMap<Node<T>, Node<T>>( );
 		}
 	}
 }

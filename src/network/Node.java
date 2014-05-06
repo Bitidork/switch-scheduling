@@ -223,8 +223,8 @@ public abstract class Node<T extends Message> {
 	 * The link must be used exclusively by methods provided by the Node class.
 	 * @param time The time at which the link is registered.
 	 * @param link The link to register with this node.
+	 * @return The node object for cascading calls.
 	 * @throws IllegalArgumentException if this node is not the sink of the link
-	 * @returns The node object for cascading calls.
 	 */
 	public Node<T> addLink( final int time, final InputLink<T> link ) {
 		if ( this != link.getSink( ) )
@@ -240,9 +240,9 @@ public abstract class Node<T extends Message> {
 	 * The link must be used exclusively by methods provided by the Node class.
 	 * @param time The time at which the link is registered.
 	 * @param link The link to register with this node.
+	 * @return The node object for cascading calls.
 	 * @throws IllegalArgumentException if this node is not the source of the link
 	 * @throws IllegalArgumentException if the link is busy (cannot transmit)
-	 * @returns The node object for cascading calls.
 	 */
 	public Node<T> addLink( final int time, final OutputLink<T> link ) {
 		if ( this != link.getSource( ) )

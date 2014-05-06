@@ -20,24 +20,9 @@ public abstract class WrapperLink<T extends Message> extends Link<T> {
 	 * @throws IllegalArgumentException if the source or sink node are null
 	 */
 	public WrapperLink( final Link<T> link ) {
-		super( link.getSource( ), link.getSink( ) );
+		super( link.getSource( ), link.getSink( ), link.getTransmissionRate() );
 	
 		this.wrappedLink = link;
-	}
-	
-	@Override
-	public Node<T> getSource( ) {
-		return this.getWrappedLink( ).getSource( );
-	}
-	
-	@Override
-	public Node<T> getSink( ) {
-		return this.getWrappedLink( ).getSink( );
-	}
-	
-	@Override
-	public int getTransmissionRate( ) {
-		return this.getWrappedLink( ).getTransmissionRate( );
 	}
 	
 	/**
