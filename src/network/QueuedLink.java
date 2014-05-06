@@ -8,8 +8,6 @@ import network.Message;
 
 /**
  * A link that implements transmission and reception according to the ordering constraints outlined in {@link network.Link#transmit(int, Message)} and {@link network.Link#receive(int)}.
- * 
- * Also implements {@link #getTransmissionTime(Message)} to return 1.
  * @author Bitidork
  *
  * @param <T> The type of message this link transmits.
@@ -39,7 +37,7 @@ public class QueuedLink<T extends Message> extends Link<T> {
 			}
 			
 			this.payload = data;
-			this.receivedPayloadTime = time + this.getTransmissionTime( data );
+			this.receivedPayloadTime = time + this.getTransmissionRate( );
 			
 			if ( this.receivedPayloadTime <= time )
 				throw new IllegalStateException("The transmission time for data was zero or negative");
@@ -65,11 +63,6 @@ public class QueuedLink<T extends Message> extends Link<T> {
 		synchronized ( this ) {
 			return this.payload == null || this.receivedPayloadTime <= time;
 		}
-	}
-	
-	@Override
-	public int getTransmissionTime( final T message ) {
-		return 1;
 	}
 	
 	/**

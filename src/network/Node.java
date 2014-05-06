@@ -301,7 +301,7 @@ public abstract class Node<T extends Message> {
 			throw new IllegalArgumentException("Supplied sink was not on an output port");
 		} else if ( link.canTransmit(time) && this.idleOutputPorts.remove( sink ) ) {
 			// calculate arrival time
-			int arrivalTime = link.getTransmissionTime( message ) + time;
+			int arrivalTime = link.getTransmissionRate( ) + time;
 			// start transmitting
 			link.transmit(time, message);
 			

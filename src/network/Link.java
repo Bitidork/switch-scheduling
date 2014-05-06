@@ -14,7 +14,6 @@ import network.Message;
  * <li>Receive a {@link network.Message} of type <i>T</i> at the sink
  * <li>Determine whether it is busy or otherwise unable to transmit
  * <li>Determine which {@link network.Node}s are connected to this link.
- * <li>Determine how long it takes to transmit a specific {@link network.Message} over this link.
  * </ul>
  * @author Bitidork
  * @see network.Node
@@ -23,20 +22,35 @@ import network.Message;
  */
 public abstract class Link<T extends Message> {
 	/**
+	 * Constructs a Link with the given source and sink, with a transmission rate of 1 time unit per message.
+	 * @param source The {@link network.Node} that transmits data over this link.
+	 * @param sink The {@link network.Node} that receives data over this link.
+	 * @throws IllegalArgumentException if the source or sink node are null
+	 */
+	public Link( final Node<T> source, final Node<T> sink ) {
+		this( source, sink, 1 );
+	}
+	
+	/**
 	 * Constructs a Link with the given source and sink.
 	 * @param source The {@link network.Node} that transmits data over this link.
 	 * @param sink The {@link network.Node} that receives data over this link.
-	 * @throws IllegalArgumentException if the source or sink node are null.
+	 * @param transmissionRate The number of time steps that it takes to transmit something over this link.
+	 * @throws IllegalArgumentException if the source or sink node are null, or if transmission rate is not positive
 	 */
-	public Link( final Node<T> source, final Node<T> sink ) {
+	public Link( final Node<T> source, final Node<T> sink, final int transmissionRate ) {
 		if ( source == null ) 
 			throw new IllegalArgumentException("Source node is null");
 		
 		if ( sink == null )
 			throw new IllegalArgumentException("Sink node is null");
 		
+		if ( transmissionRate <= 0 )
+			throw new IllegalArgumentException("Transmission rate was not positive");
+		
 		this.source = source;
 		this.sink = sink;
+		this.transmissionRate = transmissionRate;
 		
 		// delay creation of input and output links, for the InputLink and OutputLink classes.
 		this.inputLink = null;
@@ -78,12 +92,12 @@ public abstract class Link<T extends Message> {
 	public abstract boolean canTransmit( final int time );
 	
 	/**
-	 * Calculates the amount of time needed to transmit <i>message</i> over this link.
-	 * The value returned must be strictly positive (greater than zero).
-	 * @param message The message to transmit over this link.
-	 * @return Returns the amount of time needed to transmit <i>data</i> over this link.
+	 * Gets the amount of time needed to transmit a message over this link.
+	 * @return Returns the amount of time needed to transmit one message over this link.
 	 */
-	public abstract int getTransmissionTime( final T message );
+	public int getTransmissionRate( ) {
+		return this.transmissionRate;
+	}
 	
 	/**
 	 * Gets the <i>Node</i> that transmits data over this link.
@@ -144,4 +158,9 @@ public abstract class Link<T extends Message> {
 	 * The {@link network.OutputLink} for this link.
 	 */
 	private OutputLink<T> outputLink;
+	
+	/**
+	 * The number of time units needed to transmit one message.
+	 */
+	private int transmissionRate;
 }

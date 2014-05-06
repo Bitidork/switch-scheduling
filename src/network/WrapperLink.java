@@ -36,8 +36,8 @@ public abstract class WrapperLink<T extends Message> extends Link<T> {
 	}
 	
 	@Override
-	public int getTransmissionTime( final T message ) {
-		return this.getWrappedLink( ).getTransmissionTime( message );
+	public int getTransmissionRate( ) {
+		return this.getWrappedLink( ).getTransmissionRate( );
 	}
 	
 	/**
