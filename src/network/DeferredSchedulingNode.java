@@ -42,7 +42,7 @@ public abstract class DeferredSchedulingNode<T extends Message> extends Node<T> 
 	 * This field should not be used explicitly. Use the interface provided in the {@link Scheduler} class.
 	 * @see Scheduler
 	 */
-	Scheduler<T>.DecisionStructure decisionStructure;
+	DecisionStructure<T> decisionStructure;
 	
 	/**
 	 * The scheduler that this node uses.
