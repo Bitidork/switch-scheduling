@@ -7,7 +7,35 @@ import java.util.Set;
 
 import util.Tuple;
 
-public final class Network<T extends Message> {
+public abstract class Network<T extends Message> {
+	/**
+	 * Called in {@link #run(int)}, before nodes are updated.
+	 */
+	public abstract void prePhase( );
+
+
+	/**
+	 * Called in {@link #run(int)}, after nodes are updated.
+	 */
+	public abstract void postPhase( );
+	
+	/**
+	 * Updates this network over the supplied number of frames.
+	 * @param frames The number of frames to run for.
+	 */
+	public void run( final int frames ) {
+		int iterations = Constants.FRAME_SIZE * frames;
+		
+		this.prePhase( );
+		
+		for ( int i = 0; i < iterations; i++ ) {
+			for ( Node<? extends T> node : nodes )
+				node.update( i );
+		}
+		
+		this.postPhase( );
+	}
+	
 	/**
 	 * Gets the set of nodes in this network.
 	 * @return Returns the set of nodes in this network.
@@ -60,17 +88,49 @@ public final class Network<T extends Message> {
 	}
 	
 	/**
+	 * Removes the supplied flow from the network, if it exists.
+	 * @param flow The flow.
+	 */
+	void removeFlow( Flow<T> flow ) {
+		if ( flows.containsKey(flow.getEndpoints()) ) {
+			flows.remove( flow.getEndpoints() );
+			
+			for ( DeferredSchedulingNode<? extends T> node : flow ) {
+				scheduler.removeDecision( node, flow.getSource(), flow.getSink() );
+			}
+		}
+	}
+	
+	/**
+	 * Registers the supplied flow from the network.
+	 * If it already exists, simply replaces it.
+	 * @param flow The flow.
+	 */
+	void addFlow( Flow<T> flow ) {
+		if ( flows.containsKey( flow.getEndpoints() ) )
+			this.removeFlow( flow );
+		
+		flows.put( flow.getEndpoints(), flow );
+		
+		DeferredSchedulingNode<? extends T> previousNode = flow.getSource();
+		for ( DeferredSchedulingNode<? extends T> node : flow ) {
+			scheduler.putDecision(previousNode, flow.getSource(), flow.getSink(), node);
+			previousNode = node;
+		}
+	}
+	
+	/**
 	 * A mapping of (sender,receiver) tuples to the flow object between them.
 	 */
-	private HashMap<Tuple<Node<? extends T>, Node<? extends T>>, Flow<? extends T>> flows;
+	HashMap<Tuple<Node<? extends T>, Node<? extends T>>, Flow<? extends T>> flows;
 	
 	/**
 	 * The set of nodes in this network.
 	 */
-	private Set<Node<? extends T>> nodes;
+	Set<Node<? extends T>> nodes;
 	
 	/**
 	 * The scheduler this network uses.
 	 */
-	private Scheduler<T> scheduler; 
+	Scheduler<T> scheduler; 
 }

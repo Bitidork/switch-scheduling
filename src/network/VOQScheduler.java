@@ -2,6 +2,7 @@ package network;
 
 import util.Tuple;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.HashMap;
@@ -37,7 +38,12 @@ public abstract class VOQScheduler<T extends Message> extends Scheduler<T> {
 		
 		Set<Tuple<Node<T>, Node<T>>> program = this.createProgram(time, node, tag);
 		
+		Set<Node<T>> usedInputs = new HashSet<Node<T>>( );
 		for ( Tuple<Node<T>, Node<T>> edge : program ) {
+			if ( usedInputs.contains( edge.first ) )
+				throw new IllegalStateException("Scheduling error: Reused input queue");
+			
+			usedInputs.add( edge.first );
 			T head = tag.popMessageFromQueue( edge );
 			node.transmitToNode( time, edge.second, head );
 		}

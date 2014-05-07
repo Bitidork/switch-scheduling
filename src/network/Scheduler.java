@@ -93,8 +93,20 @@ public abstract class Scheduler<T extends Message> {
 	 * @param destination The destination of the flow.
 	 * @param nextHop The next node messages should arrive at.
 	 */
-	public void putDecision( final DeferredSchedulingNode<T> node, final Node<T> source, final Node<T> destination, final Node<T> nextHop ) {
-		node.decisionStructure.putDecision( source, destination, nextHop );
+	@SuppressWarnings("unchecked")
+	public void putDecision( final DeferredSchedulingNode<? extends T> node, final Node<? extends T> source, final Node<? extends T> destination, final Node<? extends T> nextHop ) {
+		((DeferredSchedulingNode<T>)node).decisionStructure.putDecision( (Node<T>)source, (Node<T>)destination, (Node<T>)nextHop );
+	}
+	
+	/**
+	 * Removes the decision in place, or does nothing if it is not in place.
+	 * @param node The node the decision is at.
+	 * @param source The source of the flow.
+	 * @param destination The destination of the flow.
+	 */
+	@SuppressWarnings("unchecked")
+	public void removeDecision( final DeferredSchedulingNode<? extends T> node, final Node<? extends T> source, final Node<? extends T> destination ) {
+		((DeferredSchedulingNode<T>)node).decisionStructure.removeDecision( (Node<T>)source, (Node<T>)destination );
 	}
 	
 	/**
