@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import util.Tuple;
+import util.WeightedHashSet;
 import util.WeightedMultiHashMap;
 
 /**
@@ -71,18 +72,22 @@ public class DecisionStructure<T extends Message> {
 	 * @return Returns the amount of capacity reserved across the supplied VOQ.
 	 */
 	public int getReservedCapacity( final Tuple<Node<T>, Node<T>> voq ) {
-		return this.reservedCapacities.getWeight( voq.first, voq.second ).intValue();
+		return this.reservedCapacities.getWeight( voq.first, voq ).intValue();
 	}
 	
 	/**
 	 * Picks a random input, weighted based on the reserved capacity through the output.
 	 * @param output The output.
 	 * @param rng The random number generator to use.
+	 * @param retainingSet The set of VOQs to retain when randomly choosing an input.
 	 * @return Returns a random input, weighted based on the reserved capacity through the output, or null if no node could be picked.
 	 */
-	public Node<T> pickRandomInput( final Node<T> output, final Random rng ) {
+	public Node<T> pickRandomInput( final Node<T> output, final Random rng, final Set<Tuple<Node<T>, Node<T>>> retainingSet ) {
+		WeightedHashSet<Tuple<Node<T>, Node<T>>> validSet = new WeightedHashSet<Tuple<Node<T>, Node<T>>>( reservedCapacities.get( output ) );
+		validSet.retainAll( retainingSet );
+		
 		try {
-			return this.reservedCapacities.pickRandom( output, rng );
+			return validSet.pickRandom( rng ).first;
 		} catch ( IllegalStateException e ) {
 			return null;
 		}
@@ -92,10 +97,11 @@ public class DecisionStructure<T extends Message> {
 	 * Picks a random input, weighted based on the reserved capacity through the output, using the thread's local random number generator.
 	 * @param output The output.
 	 * @return Returns a random input, weighted based on the reserved capacity through the output, or null if no node could be picked.
+	 * @param retainingSet The set of VOQs to retain when randomly choosing an input.
 	 * @see ThreadLocalRandom
 	 */
-	public Node<T> pickRandomInput( final Node<T> output ) {
-		return this.pickRandomInput( output, ThreadLocalRandom.current( ) );
+	public Node<T> pickRandomInput( final Node<T> output, final Set<Tuple<Node<T>, Node<T>>> retainingSet ) {
+		return this.pickRandomInput( output, ThreadLocalRandom.current( ), retainingSet );
 	}
 	
 	/**
@@ -104,16 +110,16 @@ public class DecisionStructure<T extends Message> {
 	private HashMap<Tuple<Node<T>, Node<T>>, Node<T>> decisionMap;
 	
 	/**
-	 * A mapping from output terminals to the set of input terminals that use that output.
+	 * A mapping from output terminals to the VOQs whose output terminal is that terminal.
 	 * Each input is weighted by the capacity reserved across the terminals.
 	 */
-	private WeightedMultiHashMap<Node<T>, Node<T>> reservedCapacities;
+	private WeightedMultiHashMap<Node<T>, Tuple<Node<T>, Node<T>>> reservedCapacities;
 	
 	/**
 	 * Initializes an empty decision structure.
 	 */
 	public DecisionStructure( ) {
 		this.decisionMap = new HashMap<Tuple<Node<T>, Node<T>>, Node<T>>( );
-		this.reservedCapacities = new WeightedMultiHashMap<Node<T>, Node<T>>( );
+		this.reservedCapacities = new WeightedMultiHashMap<Node<T>, Tuple<Node<T>, Node<T>>>( );
 	}
 }

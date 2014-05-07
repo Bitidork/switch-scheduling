@@ -229,4 +229,18 @@ public class WeightedHashSet<T> implements Set<T> {
 		this( );
 		this.addAll( c );
 	}
+	
+	/**
+	 * Constructs a copy of the given weighted hash set. If <i>c</i> is null, simply constructs an empty set.
+	 * @param c The weighted hash set to copy.
+	 */
+	public WeightedHashSet( WeightedHashSet<? extends T> c ) {
+		this( );
+		
+		if ( c != null ) {
+			this.set = new HashSet<T>( c.set );
+			this.weights = new HashMap<T, Float>( c.weights );
+			this.totalWeight = c.totalWeight;
+		}
+	}
 }
