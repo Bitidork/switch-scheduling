@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import util.Tuple;
-import util.WeightedHashSet;
 import util.WeightedMultiHashMap;
 
 /**
@@ -79,15 +78,11 @@ public class DecisionStructure<T extends Message> {
 	 * Picks a random input, weighted based on the reserved capacity through the output.
 	 * @param output The output.
 	 * @param rng The random number generator to use.
-	 * @param retainingSet The set of VOQs to retain when randomly choosing an input.
 	 * @return Returns a random input, weighted based on the reserved capacity through the output, or null if no node could be picked.
 	 */
-	public Node<T> pickRandomInput( final Node<T> output, final Random rng, final Set<Tuple<Node<T>, Node<T>>> retainingSet ) {
-		WeightedHashSet<Tuple<Node<T>, Node<T>>> validSet = new WeightedHashSet<Tuple<Node<T>, Node<T>>>( reservedCapacities.get( output ) );
-		validSet.retainAll( retainingSet );
-		
+	public Node<T> pickRandomInput( final Node<T> output, final Random rng ) {
 		try {
-			return validSet.pickRandom( rng ).first;
+			return this.reservedCapacities.pickRandom( output, rng ).first;
 		} catch ( IllegalStateException e ) {
 			return null;
 		}
@@ -97,11 +92,10 @@ public class DecisionStructure<T extends Message> {
 	 * Picks a random input, weighted based on the reserved capacity through the output, using the thread's local random number generator.
 	 * @param output The output.
 	 * @return Returns a random input, weighted based on the reserved capacity through the output, or null if no node could be picked.
-	 * @param retainingSet The set of VOQs to retain when randomly choosing an input.
 	 * @see ThreadLocalRandom
 	 */
-	public Node<T> pickRandomInput( final Node<T> output, final Set<Tuple<Node<T>, Node<T>>> retainingSet ) {
-		return this.pickRandomInput( output, ThreadLocalRandom.current( ), retainingSet );
+	public Node<T> pickRandomInput( final Node<T> output ) {
+		return this.pickRandomInput( output, ThreadLocalRandom.current( ) );
 	}
 	
 	/**
