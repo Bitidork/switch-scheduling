@@ -9,6 +9,12 @@ import java.util.Set;
 
 import util.Tuple;
 
+/**
+ * A generic node-oriented network. Provides utility for adding flows.
+ * @author Bitidork
+ *
+ * @param <T> The type of message.
+ */
 public abstract class Network<T extends Message> {
 	/**
 	 * Called in {@link #run(int)}, before nodes are updated.
@@ -32,8 +38,10 @@ public abstract class Network<T extends Message> {
 		
 		for ( int i = 0; i < iterations; i++ ) {
 			for ( Node<? extends T> node : nodes )
-				node.update( i );
+				node.update( previousRunTime + i );
 		}
+		
+		previousRunTime += iterations;
 		
 		this.postPhase( );
 	}
@@ -89,18 +97,44 @@ public abstract class Network<T extends Message> {
 		this.nodes = new HashSet<Node<? extends T>>( );
 		this.scheduler = scheduler;
 		this.rng = rng;
+		this.previousRunTime = 0;
+	}
+	
+	/**
+	 * Adds the supplied node to the network.
+	 * @param node The node to add.
+	 */
+	void addNode( final Node<T> node ) {
+		this.nodes.add( node );
 	}
 	
 	/**
 	 * Removes the supplied flow from the network, if it exists.
 	 * @param flow The flow.
 	 */
-	void removeFlow( Flow<T> flow ) {
+	void removeFlow( final Flow<T> flow ) {
 		if ( flows.containsKey(flow.getEndpoints()) ) {
 			flows.remove( flow.getEndpoints() );
 			
-			for ( DeferredSchedulingNode<? extends T> node : flow ) {
+			DeferredSchedulingNode<? extends T> previousNode = flow.getSource();
+			DeferredSchedulingNode<? extends T> node = flow.getSource();
+			for ( DeferredSchedulingNode<? extends T> nextNode : flow ) {
+				// remove decision
 				scheduler.removeDecision( node, flow.getSource(), flow.getSink() );
+
+				// get ds
+				@SuppressWarnings("unchecked")
+				DecisionStructure<T> ds = scheduler.getDecisionStructure((DeferredSchedulingNode<T>)node);
+				
+				// voq
+				@SuppressWarnings("unchecked")
+				Tuple<Node<T>, Node<T>> voq = new Tuple<Node<T>, Node<T>>( (Node<T>)previousNode, (Node<T>)nextNode );
+				
+				// modify reserved capacity
+				ds.setReservedCapacity(voq, 0);
+				
+				previousNode = node;
+				node = nextNode;
 			}
 		}
 	}
@@ -110,36 +144,69 @@ public abstract class Network<T extends Message> {
 	 * If it already exists, simply replaces it.
 	 * @param flow The flow.
 	 */
-	void addFlow( Flow<T> flow ) {
+	void addFlow( final Flow<T> flow ) {
 		if ( flows.containsKey( flow.getEndpoints() ) )
 			this.removeFlow( flow );
 		
 		flows.put( flow.getEndpoints(), flow );
 		
 		DeferredSchedulingNode<? extends T> previousNode = flow.getSource();
-		for ( DeferredSchedulingNode<? extends T> node : flow ) {
-			scheduler.putDecision(previousNode, flow.getSource(), flow.getSink(), node);
+		DeferredSchedulingNode<? extends T> node = flow.getSource();
+		for ( DeferredSchedulingNode<? extends T> nextNode : flow ) {
+			// place the decision
+			scheduler.putDecision(node, flow.getSource(), flow.getSink(), nextNode);
+			
+			// get ds
+			@SuppressWarnings("unchecked")
+			DecisionStructure<T> ds = scheduler.getDecisionStructure((DeferredSchedulingNode<T>)node);
+			
+			// voq
+			@SuppressWarnings("unchecked")
+			Tuple<Node<T>, Node<T>> voq = new Tuple<Node<T>, Node<T>>( (Node<T>)previousNode, (Node<T>)nextNode );
+			
+			// modify reserved capacity
+			ds.translateReservedCapacity( voq, flow.getRequiredCapacity() );
+			
 			previousNode = node;
+			node = nextNode;
 		}
+	}
+	
+	/**
+	 * Gets the scheduler used by this network.
+	 * @return Returns the scheduler used by this network.
+	 */
+	Scheduler<T> getScheduler( ) {
+		return this.scheduler;
+	}
+	
+	/**
+	 * Gets the RNG used by this network.
+	 * @return Returns the RNG used by this network.
+	 */
+	Random getRNG( ) {
+		return this.rng;
 	}
 	
 	/**
 	 * A mapping of (sender,receiver) tuples to the flow object between them.
 	 */
-	HashMap<Tuple<Node<? extends T>, Node<? extends T>>, Flow<? extends T>> flows;
+	private HashMap<Tuple<Node<? extends T>, Node<? extends T>>, Flow<? extends T>> flows;
 	
 	/**
 	 * The set of nodes in this network.
 	 */
-	Set<Node<? extends T>> nodes;
+	private Set<Node<? extends T>> nodes;
 	
 	/**
 	 * The scheduler this network uses.
 	 */
-	Scheduler<T> scheduler; 
+	private Scheduler<T> scheduler; 
 	
 	/**
 	 * The random number generator for this network to use.
 	 */
-	Random rng;
+	private Random rng;
+	
+	private int previousRunTime;
 }

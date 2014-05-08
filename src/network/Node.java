@@ -158,6 +158,7 @@ public abstract class Node<T extends Message> {
 		
 		this.outputLinks = new HashMap<Node<T>, OutputLink<T>>( );
 		this.idleOutputPorts = new HashSet<Node<T>>( );
+		this.outputsPorts = new HashSet<Node<T>>( );
 		this.outputArrivals = new PriorityQueue<TransmissionEntry>( );
 	}
 	
@@ -253,6 +254,7 @@ public abstract class Node<T extends Message> {
 		
 		this.outputLinks.put( link.getSink( ), link );
 		this.idleOutputPorts.add( link.getSink( ) );
+		this.outputsPorts.add( link.getSink( ) );
 		
 		return this;
 	}
@@ -285,6 +287,7 @@ public abstract class Node<T extends Message> {
 	public Collection<OutputLink<T>> getOutputLinks( ) {
 		return Collections.unmodifiableCollection( this.outputLinks.values() );
 	}
+	
 	
 	/**
 	 * Transmits <i>message</i> to the supplied sink starting at <i>time</i>.
@@ -320,7 +323,15 @@ public abstract class Node<T extends Message> {
 		}
 	}
 	
-
+	/**
+	 * Gets whether or not the supplied node is an output of this node.
+	 * @param output The node.
+	 * @return Returns true if and only if <i>output</i> is an output of this node.
+	 */
+	public boolean isAnOutput( final Node<? extends Message> output ) {
+		return this.outputsPorts.contains(output);
+	}
+	
 	/**
 	 * A non-negative unique number (across all Nodes) associated with this Node.
 	 */
@@ -345,6 +356,11 @@ public abstract class Node<T extends Message> {
 	 * A set of nodes whose link from this node is idle.
 	 */
 	private HashSet<Node<T>> idleOutputPorts;
+	
+	/**
+	 * The set of output ports from this node.
+	 */
+	private HashSet<Node<T>> outputsPorts;
 	
 	/**
 	 * A queue of messages from this node whose entries are sorted in ascending order by arrival time.

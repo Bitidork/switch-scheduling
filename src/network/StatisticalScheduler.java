@@ -27,13 +27,15 @@ public final class StatisticalScheduler<T extends Message> extends VOQScheduler<
 		// Step 1, 2.a in the paper
 		for ( Node<T> outputNode : availableOutputs ) {
 			// pick random input weighted by reserved capacity
-			Node<T> grantedInput = this.getDecisionStructure(node).pickRandomInput(outputNode, rng);
+			DecisionStructure<T> ds = this.getDecisionStructure(node);
+			
+			Node<T> grantedInput = ds.pickRandomInput(outputNode, rng);
 			
 			// no flows through outputNode
 			if ( grantedInput == null )
 				continue;
 			
-			int Xij = this.getDecisionStructure(node).getReservedCapacity(grantedInput, outputNode);
+			int Xij = ds.getReservedCapacity(grantedInput, outputNode);
 			float mij = (float)rng.nextInt(Xij + 1);
 			grants.put(grantedInput, outputNode, mij);
 		}

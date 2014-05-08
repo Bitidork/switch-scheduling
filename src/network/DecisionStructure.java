@@ -85,6 +85,30 @@ public class DecisionStructure<T extends Message> {
 	}
 	
 	/**
+	 * Translates the reserved capacity across the VOQ by the given amount.
+	 * @param voq The voq.
+	 * @param amount The amount of translate by.
+	 */
+	protected void translateReservedCapacity( final Tuple<Node<T>, Node<T>> voq, final int amount ) {
+		this.setReservedCapacity( voq, this.getReservedCapacity( voq ) + amount );
+	}
+	
+	/**
+	 * Sets the reserved capacity across the VOQ by the given amount.
+	 * @param voq The voq.
+	 * @param amount The amount of reserved capacity to set.
+	 */
+	protected void setReservedCapacity( final Tuple<Node<T>, Node<T>> voq, final int amount ) {
+		if ( amount < 0 ) { // except
+			throw new IllegalArgumentException("Negative capacity");
+		} else if ( amount == 0 ) { // remove
+			this.reservedCapacities.remove(voq.first, voq);
+		} else { // replace
+			this.reservedCapacities.put( voq.first,  voq, amount );
+		}
+	}
+	
+	/**
 	 * Picks a random input, weighted based on the reserved capacity through the output.
 	 * @param output The output.
 	 * @param rng The random number generator to use.

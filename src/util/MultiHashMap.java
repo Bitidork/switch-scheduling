@@ -39,6 +39,10 @@ public class MultiHashMap<K, V> extends MultiMap<K, V> {
 	public Set<V> get( final K k ) {
 		return this.map.get( k );
 	}
+	
+	public WeightedHashSet<V> getWHS( final K k ) {
+		return (WeightedHashSet<V>)this.map.get( k );
+	}
 
 	@Override
 	public Set<V> removeAll( final K k ) {

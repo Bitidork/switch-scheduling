@@ -12,6 +12,11 @@ public final class Constants {
 	public static final int FRAME_SIZE = 1000;
 	
 	/**
+	 * The amount of capacity that is safe to reserve ( FRAME_SIZE * 0.6 ).
+	 */
+	public static final int SAFE_CAPACITY = (FRAME_SIZE * 5) / 3;
+	
+	/**
 	 * The default number of iterations to run in parallel iterative matching.
 	 */
 	public static final int PARALLEL_ITERATIVE_ITERATIONS = 4;

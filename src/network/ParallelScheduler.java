@@ -51,13 +51,8 @@ public final class ParallelScheduler<T extends Message> extends VOQScheduler<T> 
 		int i = 0;
 		
 		// iterate
-		/*
 		while ( (iterations == 0 && !availableVOQs.isEmpty()) ||
 				(iterations != 0 && i < iterations) ) {
-		*/
-		
-		// quit early while loop:
-		while ( (iterations != 0 && i < iterations) || !availableVOQs.isEmpty( ) ) {
 			// mapping from output to the set of grantable inputs
 			WeightedMultiHashMap<Node<T>, Node<T>> requests = new WeightedMultiHashMap<Node<T>, Node<T>>( );
 			

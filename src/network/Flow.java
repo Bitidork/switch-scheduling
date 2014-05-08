@@ -3,6 +3,7 @@ package network;
 import java.util.AbstractSequentialList;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import util.Tuple;
 
@@ -67,7 +68,25 @@ public final class Flow<T extends Message> implements Iterable<DeferredSchedulin
 		this.endpoints = new Tuple<Node<? extends T>, Node<? extends T>>( this.getSource(), this.getSink() );
 	}
 	
-	
+	public Flow(List<DeferredSchedulingNode<T>> sequence,
+			int requiredCapacity ) {
+		if ( sequence.isEmpty() )
+			throw new IllegalArgumentException("Node sequence was empty");
+		
+		if ( requiredCapacity <= 0 )
+			throw new IllegalArgumentException("Required capacity was not positive");
+		
+		this.nodes = new LinkedList<DeferredSchedulingNode<? extends T>>( );
+		
+		for ( DeferredSchedulingNode<? extends T> node : sequence) {
+			this.nodes.add( node );
+		}
+		
+		this.requiredCapacity = requiredCapacity;
+		this.endpoints = new Tuple<Node<? extends T>, Node<? extends T>>( this.getSource(), this.getSink() );
+	}
+
+
 	private Tuple<Node<? extends T>, Node<? extends T>> endpoints;
 	
 	/**
