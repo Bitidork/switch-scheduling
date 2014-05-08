@@ -3,6 +3,8 @@ package network;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 import util.Tuple;
@@ -82,9 +84,11 @@ public abstract class Network<T extends Message> {
 	/**
 	 * Constructs an empty network.
 	 */
-	public Network( final Scheduler<T> scheduler ) {
+	public Network( final Scheduler<T> scheduler, final Random rng ) {
 		this.flows = new HashMap<Tuple<Node<? extends T>, Node<? extends T>>, Flow<? extends T>>( );
+		this.nodes = new HashSet<Node<? extends T>>( );
 		this.scheduler = scheduler;
+		this.rng = rng;
 	}
 	
 	/**
@@ -133,4 +137,9 @@ public abstract class Network<T extends Message> {
 	 * The scheduler this network uses.
 	 */
 	Scheduler<T> scheduler; 
+	
+	/**
+	 * The random number generator for this network to use.
+	 */
+	Random rng;
 }

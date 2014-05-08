@@ -75,6 +75,16 @@ public class DecisionStructure<T extends Message> {
 	}
 	
 	/**
+	 * Gets the amount of capacity reserved across the supplied VOQ.
+	 * @param inputTerminal The input terminal of the VOQ.
+	 * @param outputTerminal The output terminal of the VOQ.
+	 * @return Returns the amount of capacity reserved across the supplied VOQ.
+	 */
+	public int getReservedCapacity( final Node<T> inputTerminal, final Node<T> outputTerminal ) {
+		return this.getReservedCapacity( new Tuple<Node<T>, Node<T>>( inputTerminal, outputTerminal ) );
+	}
+	
+	/**
 	 * Picks a random input, weighted based on the reserved capacity through the output.
 	 * @param output The output.
 	 * @param rng The random number generator to use.

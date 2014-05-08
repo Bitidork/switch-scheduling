@@ -91,29 +91,26 @@ public final class WeightedMultiHashMap<K, V> extends MultiMap<K, V> {
 	
 	/**
 	 * Picks a random element from the image of <b>k</b> biased by the weights of the elements.
-	 * This method expects at least one element with non-zero weight.
 	 * @param k The key.
 	 * @param rand The random number generator to use.
-	 * @return Returns the element picked from this set.
+	 * @return Returns the element picked from this set, or null if no element could be returned.
 	 * 
-	 * @throws IllegalStateException if the set is empty or has a total weight of 0
+	 * @see ThreadLocalRandom
 	 */
 	public V pickRandom(final K k, final Random rand) {
 		WeightedHashSet<V> set = (WeightedHashSet<V>) this.get(k);
 		if ( set == null )
-			throw new IllegalStateException("set did not exist");
+			return null;
 		
 		return set.pickRandom( rand );
 	}
 
 	/**
 	 * Picks a random element from the image of <b>k</b> biased by the weights of the elements.
-	 * This method expects at least one element with non-zero weight.
 	 * This method uses the thread's local random number generator.
 	 * @param k The key.
-	 * @return Returns the element picked from this set.
+	 * @return Returns the element picked from this set, or null if no element could be returned.
 	 * 
-	 * @throws IllegalStateException if the set is empty or has a total weight of 0
 	 * @see ThreadLocalRandom
 	 */
 	public V pickRandom(final K k) {

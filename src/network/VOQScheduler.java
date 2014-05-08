@@ -144,6 +144,16 @@ public abstract class VOQScheduler<T extends Message> extends Scheduler<T> {
 		}
 		
 		/**
+		 * Gets the number of messages in the supplied VOQ.
+		 * @param voq The VOQ.
+		 * @return Returns the number of messages in the supplied VOQ.
+		 */
+		protected int getVOQLength( final Tuple<Node<T>, Node<T>> voq ) {
+			Queue<T> queue = queues.get( voq );
+			return queue == null ? 0 : queue.size( );
+		}
+		
+		/**
 		 * The VOQs themselves, mapped from tuple objects.
 		 * Empty queues are removed.
 		 */

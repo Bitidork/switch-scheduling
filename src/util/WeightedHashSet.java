@@ -153,18 +153,18 @@ public class WeightedHashSet<T> implements Set<T> {
 	
 	/**
 	 * Picks a random element from this set biased by the weights of the elements.
-	 * This method expects at least one element with non-zero weight.
+	 * Picks null if no element could be selected, i.e. all weights are 0 or the set is empty.
 	 * @param rand The random number generator to use.
-	 * @return Returns the element picked from this set.
+	 * @return Returns the element picked from this set, or null if no element could be selected.
 	 * 
-	 * @throws IllegalStateException if the set is empty or has a total weight of 0
+	 * @see ThreadLocalRandom
 	 */
 	public T pickRandom( final Random rand ) {
 		Set<T> R = this.set;
 		float weightSum = this.getWeight( );
 		
 		if ( R.isEmpty() || weightSum == 0.0f )
-			throw new IllegalStateException("empty or otherwise unweighted set");
+			return null;
 		
 		// float num = rand.nextFloat() * weightSum; // want interval of (0, 1]
 		float num = (1.0f - rand.nextFloat( )) * weightSum;
@@ -186,11 +186,10 @@ public class WeightedHashSet<T> implements Set<T> {
 	
 	/**
 	 * Picks a random element from this set biased by the weights of the elements.
-	 * This method expects at least one element with non-zero weight.
+	 * Picks null if no element could be selected, i.e. all weights are 0 or the set is empty.
 	 * This method uses the thread's local random number generator.
-	 * @return Returns the element picked from this set.
+	 * @return Returns the element picked from this set, or null if no element could be selected.
 	 * 
-	 * @throws IllegalStateException if the set is empty or has a total weight of 0
 	 * @see ThreadLocalRandom
 	 */
 	public T pickRandom( ) {

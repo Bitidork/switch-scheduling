@@ -35,11 +35,16 @@ public class FIFOSchedulerTest {
 		@Override
 		protected void onUpdate(int time) {
 			// generate only up to 5 messages
-			if ( currentValue < 5 ) {
-				Packet packet = new Packet(this, receiver, time);
-				packet.value = currentValue;
-				this.scheduleMessage(time, this, packet);
-				currentValue++;
+			if ( time != 0 )
+				return;
+			
+			for ( int i = 0; i < 5; i++ ) {
+				if ( currentValue < 5 ) {
+					Packet packet = new Packet(this, receiver, time);
+					packet.value = currentValue;
+					this.scheduleMessage(time, this, packet);
+					currentValue++;
+				}
 			}
 		}
 		
@@ -74,7 +79,7 @@ public class FIFOSchedulerTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		FIFOScheduler<Packet> scheduler = new FIFOScheduler<Packet>( );
+		Scheduler<Packet> scheduler = new ParallelScheduler<Packet>( );
 		receiver = new Host2(scheduler);
 		sender = new Host1(scheduler, receiver);
 		netSwitch = new Switch<Packet>( scheduler );
