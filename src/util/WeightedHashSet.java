@@ -99,8 +99,11 @@ public class WeightedHashSet<T> implements Set<T> {
 		return set.removeAll(removedObjects);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean retainAll(Collection<?> c) {
+		// A.retainAll(B) := B intersect A = A - ( A - B )
+		
 		Set<Object> removedObjects = new HashSet<Object>( set );
 		removedObjects.removeAll( c );
 		
@@ -112,6 +115,28 @@ public class WeightedHashSet<T> implements Set<T> {
 		
 		totalWeight += delta;
 		return set.removeAll(removedObjects);
+		/*
+		WeightedHashSet<T> newSet = new WeightedHashSet<T>( );
+		
+		for ( Object o : c ) {
+			if ( set.contains(o) ) {
+				T t = (T)o;
+				Float w = this.getWeight( t );
+				
+				if ( w == 1.0f )
+					newSet.add( t );
+				else 
+					newSet.add( t, w );
+			}
+		}
+		
+		boolean retVal = this.set.size() != newSet.set.size();
+		this.set = newSet.set;
+		this.totalWeight = newSet.totalWeight;
+		this.weights = newSet.weights;
+		
+		return retVal;
+		*/
 	}
 
 	@Override

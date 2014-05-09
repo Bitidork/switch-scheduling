@@ -58,6 +58,10 @@ public final class WeightedMultiHashMap<K, V> extends MultiMap<K, V> {
 		return map.get(k);
 	}
 	
+	public WeightedHashSet<V> getWHS(K k) {
+		return (WeightedHashSet<V>)this.get(k);
+	}
+	
 	/**
 	 * Gets the total weight of the given key.
 	 * @param k The key.

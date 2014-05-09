@@ -146,7 +146,7 @@ public abstract class Network<T extends Message> {
 	 */
 	void addFlow( final Flow<T> flow ) {
 		if ( flows.containsKey( flow.getEndpoints() ) )
-			this.removeFlow( flow );
+			throw new IllegalArgumentException("flow must be replaced");
 		
 		flows.put( flow.getEndpoints(), flow );
 		

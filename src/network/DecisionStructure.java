@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import util.Tuple;
+import util.WeightedHashSet;
 import util.WeightedMultiHashMap;
 
 /**
@@ -116,7 +117,28 @@ public class DecisionStructure<T extends Message> {
 	 */
 	public Node<T> pickRandomInput( final Node<T> output, final Random rng ) {
 		try {
-			return this.reservedCapacities.pickRandom( output, rng ).first;
+			Tuple<Node<T>, Node<T>> pickedInput = this.reservedCapacities.pickRandom( output, rng );
+			if ( pickedInput == null )
+				return null;
+			
+			return pickedInput.first;
+		} catch ( IllegalStateException e ) {
+			return null;
+		}
+	}
+	
+	public Node<T> pickRandomInput( final Node<T> output, final Random rng, Set<Tuple<Node<T>,Node<T>>> availableVOQs ) {
+		try {
+			Set<Tuple<Node<T>, Node<T>>> voqs = this.reservedCapacities.get( output );
+			if ( voqs == null )
+				return null;
+			
+			WeightedHashSet<Tuple<Node<T>, Node<T>>> inputs = new WeightedHashSet<Tuple<Node<T>, Node<T>>>(availableVOQs);
+			inputs.retainAll( voqs );
+			Tuple<Node<T>, Node<T>> edge = inputs.pickRandom( rng );
+			if ( edge == null )
+				return null;
+			return edge.first;
 		} catch ( IllegalStateException e ) {
 			return null;
 		}

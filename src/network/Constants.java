@@ -9,7 +9,7 @@ public final class Constants {
 	/**
 	 * The number of contiguous time units that form a single frame.
 	 */
-	public static final int FRAME_SIZE = 1000;
+	public static final int FRAME_SIZE = 200;
 	
 	/**
 	 * The amount of capacity that is safe to reserve ( FRAME_SIZE * 0.6 ).

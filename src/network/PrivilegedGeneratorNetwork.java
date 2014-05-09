@@ -25,6 +25,8 @@ public final class PrivilegedGeneratorNetwork extends TestNetwork {
 		final int p = 2 * Constants.SAFE_CAPACITY / ( generators.length * ( generators.length + 1) );
 		Switch<Message> sw = new Switch<Message>( scheduler );
 		
+		this.addNode( sw );
+		
 		for ( int i = 1; i <= numGenerators; i++ ) {
 			GeneratorNode generator = generators[i - 1];
 			

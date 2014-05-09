@@ -9,6 +9,7 @@ import java.math.BigInteger;
 
 import util.MultiHashMap;
 import util.WeightedHashSet;
+import util.WeightedMultiHashMap;
 
 /**
  * A network that facilitates testing of a scheduling scheme.
@@ -128,6 +129,8 @@ public class TestNetwork extends Network<Message> {
 		}
 		
 		super.addFlow(flow);
+		
+		this.flowsFromNode.put( (Node<Message>)flow.getSource(), flow, (float)flow.getRequiredCapacity() );
 	}
 	
 	/**
@@ -159,7 +162,7 @@ public class TestNetwork extends Network<Message> {
 	public TestNetwork( String name, Scheduler<Message> scheduler, Random rng) {
 		super(scheduler, rng);
 		this.name = name;
-		flowsFromNode = new MultiHashMap<Node<Message>, Flow<Message>>( );
+		flowsFromNode = new WeightedMultiHashMap<Node<Message>, Flow<Message>>( );
 		generators = new HashSet<GeneratorNode>( );
 		receivers = new HashSet<ReceiverNode>( );
 	}
@@ -183,7 +186,7 @@ public class TestNetwork extends Network<Message> {
 	/**
 	 * A multimap where the image of a node is the set of flows it generates.
 	 */
-	private MultiHashMap<Node<Message>, Flow<Message>> flowsFromNode;
+	private WeightedMultiHashMap<Node<Message>, Flow<Message>> flowsFromNode;
 	
 	/**
 	 * The set of nodes generating messages in this network.
@@ -257,8 +260,12 @@ public class TestNetwork extends Network<Message> {
 			}
 			
 			j++;
-			BigDecimal meanDisparity = BigDecimal.valueOf( sumCurrentDisparities.longValue() ).divide( BigDecimal.valueOf( disparities.size() ) );
-			System.out.print( meanDisparity );
+			if ( disparities.size() != 0 ) {
+				BigDecimal meanDisparity = BigDecimal.valueOf( sumCurrentDisparities.longValue() ).divide( BigDecimal.valueOf( disparities.size() ), BigDecimal.ROUND_DOWN );
+				System.out.print( meanDisparity );
+			} else {
+				System.out.print( 0 );
+			}
 			
 			if ( j == receiverArrivalDisparities.keySet().size() ) {
 				System.out.println("]");
@@ -267,8 +274,12 @@ public class TestNetwork extends Network<Message> {
 			}
 		}
 		
-		BigDecimal meanAge = new BigDecimal( sumAges.longValue() ).divide( BigDecimal.valueOf( numMessages ) );
-		BigDecimal meanDisparity = new BigDecimal( sumDisparities.longValue() ).divide( BigDecimal.valueOf( arrivalDisparities.size( ) ) );
+		BigDecimal meanAge = numMessages != 0 ? 
+				new BigDecimal( sumAges.longValue() ).divide( BigDecimal.valueOf( numMessages ), BigDecimal.ROUND_DOWN ) : 
+					BigDecimal.valueOf(0);
+		BigDecimal meanDisparity = arrivalDisparities.size( ) != 0 ? 
+				new BigDecimal( sumDisparities.longValue() ).divide( BigDecimal.valueOf( arrivalDisparities.size( ) ), BigDecimal.ROUND_DOWN ) : 
+					BigDecimal.valueOf(0);
 		
 		System.out.println("Mean Arrival Disparity = " + meanDisparity);
 		System.out.println("Mean Age = " + meanAge );

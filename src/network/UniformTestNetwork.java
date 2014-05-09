@@ -29,17 +29,14 @@ public final class UniformTestNetwork extends TestNetwork {
 		}
 		
 		Switch<Message> sw = new Switch<Message>( scheduler );
+		
+		this.addNode( sw );
+		
 		for ( DeferredSchedulingNode<Message> generator : generators ) {
 			for ( DeferredSchedulingNode<Message> receiver : receivers ) {
 				Flow<Message> flow = new Flow<Message>( Arrays.asList( generator, sw, receiver ), Constants.SAFE_CAPACITY / numGenerators );
 				this.addFlow( flow );
 			}
 		}
-	}
-
-	@Override
-	public void prePhase() {
-		// TODO Auto-generated method stub
-
 	}
 }
