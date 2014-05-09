@@ -129,12 +129,12 @@ public class DecisionStructure<T extends Message> {
 	
 	public Node<T> pickRandomInput( final Node<T> output, final Random rng, Set<Tuple<Node<T>,Node<T>>> availableVOQs ) {
 		try {
-			Set<Tuple<Node<T>, Node<T>>> voqs = this.reservedCapacities.get( output );
+			WeightedHashSet<Tuple<Node<T>, Node<T>>> voqs = this.reservedCapacities.getWHS( output );
 			if ( voqs == null )
 				return null;
 			
-			WeightedHashSet<Tuple<Node<T>, Node<T>>> inputs = new WeightedHashSet<Tuple<Node<T>, Node<T>>>(availableVOQs);
-			inputs.retainAll( voqs );
+			WeightedHashSet<Tuple<Node<T>, Node<T>>> inputs = new WeightedHashSet<Tuple<Node<T>, Node<T>>>(voqs);
+			inputs.retainAll( availableVOQs );
 			Tuple<Node<T>, Node<T>> edge = inputs.pickRandom( rng );
 			if ( edge == null )
 				return null;

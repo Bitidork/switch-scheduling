@@ -114,6 +114,22 @@ public class WeightedHashSet<T> implements Set<T> {
 		
 		totalWeight += delta;
 		return set.removeAll(removedObjects);
+		
+		/*
+		WeightedHashSet<T> newSet = new WeightedHashSet<T>( );
+		for ( T t : set ) {
+			if ( c.contains( t ) ) {
+				newSet.add( t, this.getWeight( t ) ); 
+			}
+		}
+		
+		boolean retVal = newSet.size() != this.size( );
+		this.set = newSet.set;
+		this.totalWeight = newSet.totalWeight;
+		this.weights = newSet.weights;
+		
+		return retVal;
+		*/
 	}
 
 	@Override

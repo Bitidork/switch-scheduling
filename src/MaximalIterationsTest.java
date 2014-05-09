@@ -23,7 +23,7 @@ public final class MaximalIterationsTest {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		final int iterations = 500;
+		final int iterations = 1000;
 		
 		File f = new File( "data/maximal_testing.m ");
 		if ( f.exists() )
@@ -32,7 +32,7 @@ public final class MaximalIterationsTest {
 		f.createNewFile();	
 		f.setWritable( true );
 		
-		final int[] testedN = new int[] { 4, 8, 16, 32, 64, 128 };
+		final int[] testedN = new int[] { 4, 8, 16, 32, 64, 128, 256 };
 		
 		PrintStream fos = new PrintStream( f );
 		try {
