@@ -29,7 +29,7 @@ public final class StatisticalScheduler<T extends Message> extends VOQScheduler<
 		// Step 1, 2.a in the paper
 		for ( Node<T> outputNode : availableOutputs ) {
 			// pick random input weighted by reserved capacity
-			Node<T> grantedInput = ds.pickRandomInput(outputNode, rng, availableVOQs);
+			Node<T> grantedInput = ds.pickRandomInput(outputNode, rng);
 			
 			// no flows through outputNode
 			if ( grantedInput == null )

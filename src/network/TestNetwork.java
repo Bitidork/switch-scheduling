@@ -248,7 +248,7 @@ public class TestNetwork extends Network<Message> {
 		}
 		
 		System.out.println("Number of messages received:" + numMessages );
-		System.out.println("Mean Receiver Arrival Disparities = [");
+		System.out.print("Mean Receiver Arrival Disparities = [");
 		int j = 0;
 		for ( ReceiverNode receiver : receiverArrivalDisparities.keySet() ) {
 			LinkedList<Integer> disparities = receiverArrivalDisparities.get( receiver );
