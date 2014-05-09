@@ -14,22 +14,22 @@ public final class StatisticalScheduler<T extends Message> extends VOQScheduler<
 	@Override
 	public Set<Tuple<Node<T>, Node<T>>> createProgram(int time, DeferredSchedulingNode<T> node, network.VOQScheduler<T>.Tag tag) {
 		// the set of idle output ports
-		HashSet<Node<T>> availableOutputs = new HashSet<Node<T>>(node.getIdleOutputPorts( ));
+		Set<Node<T>> availableOutputs = node.getIdleOutputPorts( );
 		// the rng to use
 		Random rng = ThreadLocalRandom.current();
 		// mapping from an input nodes to the set of output nodes that granted the request, weighted by a random int in [0,X_ij], where X_ij is the reserved capacity through the VOQ 
 		WeightedMultiHashMap<Node<T>, Node<T>> grants = new WeightedMultiHashMap<Node<T>, Node<T>>( );
 		// available VOQs
-		Set<Tuple<Node<T>, Node<T>>> availableVOQs = tag.getAvailableVOQs( );
+		Set<Tuple<Node<T>, Node<T>>> availableVOQs = new HashSet<Tuple<Node<T>, Node<T>>>( tag.getAvailableVOQs( ) );
 		
 		Set<Tuple<Node<T>, Node<T>>> scheduledVOQs = new HashSet<Tuple<Node<T>, Node<T>>>( );
 		
-		DecisionStructure<T> ds = this.getDecisionStructure(node);
+		DecisionStructure<T> ds = this.getDecisionStructure(node);	
 		
 		// Step 1, 2.a in the paper
 		for ( Node<T> outputNode : availableOutputs ) {
 			// pick random input weighted by reserved capacity
-			Node<T> grantedInput = ds.pickRandomInput(outputNode, rng);
+			Node<T> grantedInput = ds.pickRandomInput(outputNode, rng, availableVOQs);
 			
 			// no flows through outputNode
 			if ( grantedInput == null )
@@ -55,6 +55,7 @@ public final class StatisticalScheduler<T extends Message> extends VOQScheduler<
 				// cases where edge cannot be scheduled
 				if ( acceptedOutput == null ) // all weights 0 or empty set 
 					continue;
+
 				
 				if ( tag.getVOQLength( edge ) == 0 ) // no messages in voq
 					continue;
@@ -73,12 +74,12 @@ public final class StatisticalScheduler<T extends Message> extends VOQScheduler<
 					invalidatedVOQs.add( availableVOQ );
 			}
 			
-			availableVOQs = new HashSet<Tuple<Node<T>, Node<T>>>( availableVOQs );
+			//availableVOQs = new HashSet<Tuple<Node<T>, Node<T>>>( availableVOQs );
 			availableVOQs.removeAll( invalidatedVOQs );
 		}
 		
-		//ParallelScheduler.ParallelSchedulerResult<T> res = ParallelScheduler.createProgram(time, availableVOQs, Constants.PARALLEL_ITERATIVE_ITERATIONS);
-		//scheduledVOQs.addAll(res.program);
+		ParallelScheduler.ParallelSchedulerResult<T> res = ParallelScheduler.createProgram(time, availableVOQs, Constants.PARALLEL_ITERATIVE_ITERATIONS - 1);
+		scheduledVOQs.addAll(res.program);
 		
 		return scheduledVOQs;
 	}

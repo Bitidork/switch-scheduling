@@ -88,16 +88,7 @@ public abstract class VOQScheduler<T extends Message> extends Scheduler<T> {
 		 * Gets the set of VOQs with pending messages.
 		 * @return Returns the set of VOQs with pending messages.
 		 */
-		protected Set<Tuple<Node<T>, Node<T>>> getAvailableVOQs( ) {
-			Set<Tuple<Node<T>, Node<T>>> removedVOQs = new HashSet<Tuple<Node<T>, Node<T>>>( );
-			for ( Tuple<Node<T>, Node<T>> voq : queues.keySet() ) {
-				if ( this.getVOQLength(voq) == 0 )
-					removedVOQs.add( voq );
-			}
-			
-			for ( Tuple<Node<T>, Node<T>> voq : removedVOQs )
-				this.queues.remove( voq );
-			
+		protected Set<Tuple<Node<T>, Node<T>>> getAvailableVOQs( ) {		
 			return queues.keySet();
 		}
 		

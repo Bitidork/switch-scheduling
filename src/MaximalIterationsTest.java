@@ -52,7 +52,7 @@ public final class MaximalIterationsTest {
 			sum = sum.add( BigDecimal.valueOf( i ) );
 		}
 		
-		BigDecimal mean = sum.divide( BigDecimal.valueOf( maximalIterations.size() ) );
+		BigDecimal mean = sum.divide( BigDecimal.valueOf( maximalIterations.size() ), BigDecimal.ROUND_HALF_DOWN );
 		
 		System.out.println( "Average number of iterations for a maximal matching (" + N + " by " + N +"): " + mean );
 	}

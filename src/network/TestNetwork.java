@@ -7,7 +7,6 @@ import java.util.Random;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import util.MultiHashMap;
 import util.WeightedHashSet;
 import util.WeightedMultiHashMap;
 
@@ -36,8 +35,8 @@ public class TestNetwork extends Network<Message> {
 			// test if message should be created
 			// P(e) = #msgs to generate / #time slots left in frame
 			final int msgsLeft = msgsToCreate.getWeight().intValue();
-			final float probabilityEmission = ((float)msgsLeft) / ((float)timeLeft);
-			if ( rng.nextFloat() <= probabilityEmission ) {
+			final int roll = rng.nextInt( timeLeft );
+			if ( roll < msgsLeft ) {
 				Flow<Message> flow = msgsToCreate.pickRandom( rng );
 				if ( flow != null ) {
 					// create message
@@ -261,7 +260,7 @@ public class TestNetwork extends Network<Message> {
 			
 			j++;
 			if ( disparities.size() != 0 ) {
-				BigDecimal meanDisparity = BigDecimal.valueOf( sumCurrentDisparities.longValue() ).divide( BigDecimal.valueOf( disparities.size() ), BigDecimal.ROUND_DOWN );
+				BigDecimal meanDisparity = BigDecimal.valueOf( sumCurrentDisparities.longValue() ).divide( BigDecimal.valueOf( disparities.size() ), BigDecimal.ROUND_HALF_DOWN );
 				System.out.print( meanDisparity );
 			} else {
 				System.out.print( 0 );
@@ -275,10 +274,10 @@ public class TestNetwork extends Network<Message> {
 		}
 		
 		BigDecimal meanAge = numMessages != 0 ? 
-				new BigDecimal( sumAges.longValue() ).divide( BigDecimal.valueOf( numMessages ), BigDecimal.ROUND_DOWN ) : 
+				new BigDecimal( sumAges.longValue() ).divide( BigDecimal.valueOf( numMessages ), BigDecimal.ROUND_HALF_DOWN ) : 
 					BigDecimal.valueOf(0);
 		BigDecimal meanDisparity = arrivalDisparities.size( ) != 0 ? 
-				new BigDecimal( sumDisparities.longValue() ).divide( BigDecimal.valueOf( arrivalDisparities.size( ) ), BigDecimal.ROUND_DOWN ) : 
+				new BigDecimal( sumDisparities.longValue() ).divide( BigDecimal.valueOf( arrivalDisparities.size( ) ), BigDecimal.ROUND_HALF_DOWN ) : 
 					BigDecimal.valueOf(0);
 		
 		System.out.println("Mean Arrival Disparity = " + meanDisparity);

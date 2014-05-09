@@ -153,6 +153,9 @@ public abstract class Network<T extends Message> {
 		DeferredSchedulingNode<? extends T> previousNode = flow.getSource();
 		DeferredSchedulingNode<? extends T> node = flow.getSource();
 		for ( DeferredSchedulingNode<? extends T> nextNode : flow ) {
+			if ( nextNode == node )
+				continue;
+			
 			// place the decision
 			scheduler.putDecision(node, flow.getSource(), flow.getSink(), nextNode);
 			

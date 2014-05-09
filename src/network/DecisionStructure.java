@@ -72,7 +72,7 @@ public class DecisionStructure<T extends Message> {
 	 * @return Returns the amount of capacity reserved across the supplied VOQ.
 	 */
 	public int getReservedCapacity( final Tuple<Node<T>, Node<T>> voq ) {
-		return this.reservedCapacities.getWeight( voq.first, voq ).intValue();
+		return this.reservedCapacities.getWeight( voq.second, voq ).intValue();
 	}
 	
 	/**
@@ -103,9 +103,9 @@ public class DecisionStructure<T extends Message> {
 		if ( amount < 0 ) { // except
 			throw new IllegalArgumentException("Negative capacity");
 		} else if ( amount == 0 ) { // remove
-			this.reservedCapacities.remove(voq.first, voq);
+			this.reservedCapacities.remove(voq.second, voq);
 		} else { // replace
-			this.reservedCapacities.put( voq.first,  voq, amount );
+			this.reservedCapacities.put( voq.second, voq, amount );
 		}
 	}
 	
@@ -116,7 +116,7 @@ public class DecisionStructure<T extends Message> {
 	 * @return Returns a random input, weighted based on the reserved capacity through the output, or null if no node could be picked.
 	 */
 	public Node<T> pickRandomInput( final Node<T> output, final Random rng ) {
-		try {
+		try {			
 			Tuple<Node<T>, Node<T>> pickedInput = this.reservedCapacities.pickRandom( output, rng );
 			if ( pickedInput == null )
 				return null;

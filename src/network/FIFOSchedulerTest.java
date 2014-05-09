@@ -79,7 +79,7 @@ public class FIFOSchedulerTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		Scheduler<Packet> scheduler = new ParallelScheduler<Packet>( );
+		Scheduler<Packet> scheduler = new FIFOScheduler<Packet>( );
 		receiver = new Host2(scheduler);
 		sender = new Host1(scheduler, receiver);
 		netSwitch = new Switch<Packet>( scheduler );
