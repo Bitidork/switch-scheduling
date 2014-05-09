@@ -15,7 +15,7 @@ Test network end; calculating stats
 Number of messages received:1083091
 Mean Receiver Arrival Disparities = [2.36,2.36,2.36,2.36,2.36,2.36,2.36,2.36,2.36,2.36,2.36,2.36,2.36,2.36,2.36,2.36]
 Mean Arrival Disparity = 2.36
-Mean Age = 359.09 	
+Mean Age = 359.09
 (Min Age, Max Age) = [2,6123]
 ========================
 ========================

@@ -25,7 +25,7 @@ public final class Constants {
 	 * The number of iterations to run statistical matching for.
 	 * Note: This isn't an iteration as described in the paper.
 	 */
-	public static final int STATISTICAL_ITERATIONS = 1;
+	public static final int STATISTICAL_ITERATIONS = 2;
 
 	/**
 	 * The number of iterations to run parallel-iterative matching after statistical matching.

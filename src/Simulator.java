@@ -20,7 +20,7 @@ public final class Simulator {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		final int NUM_FRAMES_TO_RUN = 250;
+		final int NUM_FRAMES_TO_RUN = 500;
 		
 		for ( int i = 0; i < 3; i++ ) {
 			Scheduler<Message> scheduler = null;
