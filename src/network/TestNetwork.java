@@ -260,7 +260,7 @@ public class TestNetwork extends Network<Message> {
 			
 			j++;
 			if ( disparities.size() != 0 ) {
-				BigDecimal meanDisparity = BigDecimal.valueOf( sumCurrentDisparities.longValue() ).divide( BigDecimal.valueOf( disparities.size() ), BigDecimal.ROUND_HALF_DOWN );
+				BigDecimal meanDisparity = BigDecimal.valueOf( sumCurrentDisparities.longValue() ).divide( BigDecimal.valueOf( disparities.size() ), 2, BigDecimal.ROUND_HALF_UP );
 				System.out.print( meanDisparity );
 			} else {
 				System.out.print( 0 );
@@ -274,10 +274,10 @@ public class TestNetwork extends Network<Message> {
 		}
 		
 		BigDecimal meanAge = numMessages != 0 ? 
-				new BigDecimal( sumAges.longValue() ).divide( BigDecimal.valueOf( numMessages ), BigDecimal.ROUND_HALF_DOWN ) : 
+				new BigDecimal( sumAges.longValue() ).divide( BigDecimal.valueOf( numMessages ), 2, BigDecimal.ROUND_HALF_UP ) : 
 					BigDecimal.valueOf(0);
 		BigDecimal meanDisparity = arrivalDisparities.size( ) != 0 ? 
-				new BigDecimal( sumDisparities.longValue() ).divide( BigDecimal.valueOf( arrivalDisparities.size( ) ), BigDecimal.ROUND_HALF_DOWN ) : 
+				new BigDecimal( sumDisparities.longValue() ).divide( BigDecimal.valueOf( arrivalDisparities.size( ) ), 2, BigDecimal.ROUND_HALF_UP ) : 
 					BigDecimal.valueOf(0);
 		
 		System.out.println("Mean Arrival Disparity = " + meanDisparity);
